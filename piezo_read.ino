@@ -1,6 +1,5 @@
-#include <MIDI.h>
+#include "MIDIUSB.h"
 
-MIDI_CREATE_DEFAULT_INSTANCE();
 
 const int FILTER_VAL = 20;
 const int THRESHOLD = 75;
@@ -13,6 +12,18 @@ bool isTriggered = false;
 int prevSum = 0;
 int prevTime = 0;
 int curTime = micros();
+
+
+// Taken from MIDIUSB_write example
+void noteOn(byte channel, byte pitch, byte velocity) {
+  midiEventPacket_t noteOn = {0x09, 0x90 | channel, pitch, velocity};
+  MidiUSB.sendMIDI(noteOn);
+}
+
+void noteOff(byte channel, byte pitch, byte velocity) {
+  midiEventPacket_t noteOff = {0x08, 0x80 | channel, pitch, velocity};
+  MidiUSB.sendMIDI(noteOff);
+}
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -46,14 +57,11 @@ void loop() {
     int diff = sumVals - prevSum;
     int timeDiff = curTime - prevTime;
     int slope = map(float(diff)/timeDiff, 0.0, 8.0, 127, 255);
-
-    
-    
     isTriggered = true;
     digitalWrite(LED_BUILTIN, HIGH);
-//    MIDI.sendNoteOn(12, 255, 1);    // Send a Note (pitch 42, velo 127 on channel 1)
+    noteOn(1, 12, 255);    // Send a Note (pitch 42, velo 127 on channel 1)
     delay(100); // duration of note
-//    MIDI.sendNoteOff(12, 0, 1);
+    noteOff(1, 12, 0);
     digitalWrite(LED_BUILTIN, LOW);
   }
 
